@@ -64,17 +64,17 @@ body{background:var(--bg);color:var(--fg)}
     <div class="vj-key" id="vj-trend-key"></div>
     <div class="vj-chart" id="vj-trend"></div>
     <div class="vj-read" id="vj-read" aria-live="polite"></div>
-    <p class="vj-note">แตะที่แท่งเพื่อดูตัวเลข</p>
+    <p class="vj-note">แตะที่แท่งเพื่อดูตัวเลข ลูกค้า และเขตของช่วงนั้น แตะซ้ำเพื่อยกเลิก</p>
   </section>
 
   <section class="vj-card" id="vj-top-card">
-    <h2>ลูกค้า 10 อันดับแรก</h2>
+    <h2 id="vj-top-h">ลูกค้า 10 อันดับแรก</h2>
     <p class="vj-note" id="vj-top-note"> </p>
     <div id="vj-top"></div>
   </section>
 
   <section class="vj-card" id="vj-region-card">
-    <h2>ขายไปที่ไหน</h2>
+    <h2 id="vj-reg-h">ขายไปที่ไหน</h2>
     <p class="vj-note">แบ่งตามรหัสตลาดของลูกค้า</p>
     <div id="vj-region"></div>
   </section>
@@ -139,7 +139,7 @@ body{background:var(--bg);color:var(--fg)}
         g.append('rect').attr('x',x0-2).attr('width',bw+4).attr('y',0).attr('height',ih).attr('rx',6).style('fill','none').style('stroke','var(--fg)').attr('stroke-width',2).attr('stroke-dasharray','4 3');
       }
       g.append('text').attr('x',x0+bw/2).attr('y',ih+22).attr('text-anchor','middle').attr('font-size',iw/items.length<30?11:14).style('fill',i===selIdx?'var(--fg)':'var(--muted)').attr('font-weight',i===selIdx?700:400).text(d.label);
-      g.append('rect').attr('x',x0-2).attr('width',bw+4).attr('y',0).attr('height',ih+30).style('fill','transparent').style('cursor','pointer').on('click',function(){picked=d.label;redraw()});
+      g.append('rect').attr('x',x0-2).attr('width',bw+4).attr('y',0).attr('height',ih+30).style('fill','transparent').style('cursor','pointer').on('click',function(){picked=(picked===d.label?null:d.label);redraw()});
     });
   }
 
@@ -210,6 +210,7 @@ body{background:var(--bg);color:var(--fg)}
     }
     var idx=-1;
     if(picked!==null)idx=items.findIndex(function(d){return d.label===picked});
+    var explicit=idx>=0;
     if(idx<0){var mx=-1;items.forEach(function(d,i){if(d.cur>mx){mx=d.cur;idx=i}})}
     drawTrend(items,idx,yr);
     var it=items[idx];
@@ -219,11 +220,16 @@ body{background:var(--bg);color:var(--fg)}
       $('vj-read').textContent=t;
     }
 
+    var subSel=sel,periodTxt='';
+    if(explicit){subSel=yr==='all'?sel.filter(function(x){return x.y===+items[idx].label}):sel.filter(function(x){return x.m===idx+1});periodTxt=' · '+items[idx].label+(yr==='all'?'':' '+yr)}
+    var subTotal=sum(subSel);
+    $('vj-top-h').textContent='ลูกค้า 10 อันดับแรก'+periodTxt;
+    $('vj-reg-h').textContent='ขายไปที่ไหน'+periodTxt;
     // top customers
-    var byC=d3.rollups(sel,function(v){return sum(v)},function(x){return x.customer}).sort(function(a,b){return b[1]-a[1]}).slice(0,10);
+    var byC=d3.rollups(subSel,function(v){return sum(v)},function(x){return x.customer}).sort(function(a,b){return b[1]-a[1]}).slice(0,10);
     var top=$('vj-top');top.textContent='';
     var topSum=d3.sum(byC,function(d){return d[1]});
-    $('vj-top-note').textContent=total>0?'10 รายนี้รวมกัน '+d3.format('.0%')(topSum/total)+' ของยอดขาย':'';
+    $('vj-top-note').textContent=subTotal>0?'10 รายนี้รวมกัน '+d3.format('.0%')(topSum/subTotal)+' ของยอดขาย':'';
     byC.forEach(function(d,i){
       var row=document.createElement('div');row.className='vj-row';
       var t=document.createElement('div');t.className='vj-rt';
@@ -237,13 +243,13 @@ body{background:var(--bg);color:var(--fg)}
     if(!byC.length)top.innerHTML='<div class="vj-empty">ไม่มีข้อมูลตามตัวเลือกนี้</div>';
 
     // region
-    var byR=d3.rollups(sel,function(v){return sum(v)},function(x){return x.market}).sort(function(a,b){return b[1]-a[1]});
+    var byR=d3.rollups(subSel,function(v){return sum(v)},function(x){return x.market}).sort(function(a,b){return b[1]-a[1]});
     var reg=$('vj-region');reg.textContent='';
     byR.forEach(function(d){
       var row=document.createElement('div');row.className='vj-row';
       var t=document.createElement('div');t.className='vj-rt';
       var n=document.createElement('span');n.className='vj-rn';n.textContent=d[0];
-      var v=document.createElement('span');v.className='vj-rv';v.textContent=d3.format('.0%')(total>0?d[1]/total:0)+' · '+fmtM(d[1])+' ล้านตัว';
+      var v=document.createElement('span');v.className='vj-rv';v.textContent=d3.format('.0%')(subTotal>0?d[1]/subTotal:0)+' · '+fmtM(d[1])+' ล้านตัว';
       t.appendChild(n);t.appendChild(v);
       var bar=document.createElement('div');bar.className='vj-bar';
       var inner=document.createElement('i');inner.style.width=(byR[0][1]>0?d[1]/byR[0][1]*100:0)+'%';inner.style.background=dash.colors[1]||dash.colors[0];
@@ -255,7 +261,7 @@ body{background:var(--bg);color:var(--fg)}
 
 
   var LANG=(location.hash||'').toLowerCase()==='#en'?'en':'th';
-  var EX={'ยอดขายลูกกุ้ง Vijaya Hatchery':'Vijaya Hatchery PL Sales','ปี':'Year','โรงเพาะ':'Hatchery','ชนิดลูกกุ้ง':'Product','ทั้งหมด':'All','ลูกค้า (ราย)':'Customers','รายการจัดส่ง':'Shipments','ล้านตัว':'million PL','ยอดขายรวม':'Total sales','แตะที่แท่งเพื่อดูตัวเลข':'Tap a bar to see the numbers','ลูกค้า 10 อันดับแรก':'Top 10 customers','ขายไปที่ไหน':'Where it sells','แบ่งตามรหัสตลาดของลูกค้า':'By customer market code','โอริสสาเหนือ':'North Odisha','โอริสสาใต้':'South Odisha','เบงกอลตะวันตก (WB)':'West Bengal (WB)','ภาคกลาง (รหัส C)':'Central (C codes)','อื่น ๆ':'Other',
+  var EX={'ยอดขายลูกกุ้ง Vijaya Hatchery':'Vijaya Hatchery PL Sales','ปี':'Year','โรงเพาะ':'Hatchery','ชนิดลูกกุ้ง':'Product','ทั้งหมด':'All','ลูกค้า (ราย)':'Customers','รายการจัดส่ง':'Shipments','ล้านตัว':'million PL','ยอดขายรวม':'Total sales','แตะที่แท่งเพื่อดูตัวเลข ลูกค้า และเขตของช่วงนั้น แตะซ้ำเพื่อยกเลิก':'Tap a bar to see that period\'s numbers, customers and regions. Tap again to clear.','ลูกค้า 10 อันดับแรก':'Top 10 customers','ขายไปที่ไหน':'Where it sells','แบ่งตามรหัสตลาดของลูกค้า':'By customer market code','โอริสสาเหนือ':'North Odisha','โอริสสาใต้':'South Odisha','เบงกอลตะวันตก (WB)':'West Bengal (WB)','ภาคกลาง (รหัส C)':'Central (C codes)','อื่น ๆ':'Other',
   'หน่วย: ล้านตัว (จำนวนลูกกุ้งที่แพ็คจริง) ข้อมูลจากไฟล์ Vijaya Hatchery Sale Raw Data 2023-2026 ช่วงที่ไม่มีบันทึกในไฟล์ QC: ต.ค.–ธ.ค. 2025 และ ม.ค. 2026 มีข้อมูลบางส่วน ชื่อลูกค้าผ่านการรวมชื่อที่สะกดต่างกันแล้ว':'Unit: million PL (post-larvae actually packed). Source: Vijaya Hatchery Sale Raw Data 2023-2026. No records in the QC file for Oct–Dec 2025, and Jan 2026 is partial. Customer names have been merged where spellings differed.'};
   var EN_MON={'ม.ค.':'Jan','ก.พ.':'Feb','มี.ค.':'Mar','เม.ย.':'Apr','พ.ค.':'May','มิ.ย.':'Jun','ก.ค.':'Jul','ส.ค.':'Aug','ก.ย.':'Sep','ต.ค.':'Oct','พ.ย.':'Nov','ธ.ค.':'Dec'};
   var RX=[
@@ -269,6 +275,7 @@ body{background:var(--bg);color:var(--fg)}
    [/ยอดขายรายเดือน ปี (\d{4})/,'Monthly sales, $1'],[/ยอดขายรายเดือน/,'Monthly sales'],[/ยอดขายรายปี/,'Yearly sales'],
    [/ยอดขาย \(ล้านตัว\)/,'Sales (million PL)'],[/ปีล่าสุดยังไม่ครบปี/,'Latest year is incomplete'],
    [/ยอดขายรวม ตั้งแต่ปี (\d{4})/,'Total sales since $1'],[/ยอดขายรวม ปี (\d{4})/,'Total sales $1'],
+   [/ลูกค้า 10 อันดับแรก/,'Top 10 customers'],[/ขายไปที่ไหน/,'Where it sells'],
    [/ข้อมูลถึง /,'Data as of '],[/ ล้านตัว/g,' million PL'],[/ปี (\d{4})/g,'$1']];
   function tr(s){
     var t=s.trim();if(EX[t]!==undefined)return s.replace(t,EX[t]);
