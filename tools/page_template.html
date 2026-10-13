@@ -40,7 +40,44 @@ body{background:var(--bg);color:var(--fg)}
 .vj-bar>i{display:block;height:100%;border-radius:6px}
 .vj-note{font-size:16px;color:var(--muted)}
 .vj-empty{color:var(--muted);font-size:18px;padding-block:24px;text-align:center}
-.vj-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.vj-lang{min-height:44px;padding:6px 14px;font-size:16px;flex:none}</style>
+.vj-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.vj-lang{min-height:44px;padding:6px 14px;font-size:16px;flex:none}
+@media (min-width:760px){
+ .vj{max-width:1600px;display:grid;grid-template-columns:1fr 1fr;gap:20px 24px;padding:24px 28px 56px;font-size:19px;align-items:start}
+ .vj>header,.vj>.vj-top,.vj>.vj-filters,.vj>.vj-take,.vj>.vj-note{grid-column:1/-1}
+ .vj-filters{flex-direction:row;flex-wrap:wrap;gap:16px 40px}
+ .vj-big{font-size:64px}
+ .vj h1{font-size:36px}
+ .vj-take{font-size:22px}
+ #vj-kpi{grid-column:1;grid-row:span 1}
+ #vj-trend-card{grid-column:2}
+ #vj-top-card{grid-column:1}
+ #vj-region-card{grid-column:2}
+}
+@media (min-width:1100px){
+ .vj{grid-template-columns:9fr 10fr 10fr;font-size:18px;gap:12px 20px;padding:14px 24px 28px}
+ .vj>header{grid-column:1/-1;grid-row:1;display:flex;align-items:center;gap:20px}
+ .vj>header .vj-top{flex:1;justify-content:flex-start;align-items:center;gap:16px}
+ .vj>header .vj-sub{white-space:nowrap}
+ .vj>.vj-filters{grid-column:1/-1;grid-row:2;flex-direction:row;flex-wrap:nowrap;gap:8px 28px;align-items:center}
+ .vj-fg{flex-direction:row;align-items:center;gap:10px}
+ .vj-btns{flex-wrap:nowrap}
+ .vj>.vj-take{grid-column:1/-1;grid-row:3;font-size:20px}
+ #vj-kpi{grid-column:1;grid-row:4}
+ #vj-region-card{grid-column:1;grid-row:5}
+ #vj-trend-card{grid-column:2;grid-row:4/6;align-self:stretch}
+ #vj-top-card{grid-column:3;grid-row:4/6;align-self:stretch}
+ .vj>.vj-note{grid-row:6}
+ .vj h1{font-size:28px}
+ .vj-big{font-size:52px}
+ .vj-btn{min-height:42px;padding:4px 14px;font-size:17px}
+ .vj-card{padding:12px 16px;gap:6px}
+ .vj-row{padding-block:3px;gap:2px}
+ .vj-bar{height:8px}
+ .vj-rt{font-size:16px}
+ #vj-top .vj-rn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+@media (min-width:760px) and (max-height:600px){.vj-big{font-size:48px}}
+</style>
 <div class="vj" id="vj">
   <header>
     <div class="vj-top"><h1 id="vj-title">ยอดขายลูกกุ้ง Vijaya Hatchery</h1><button type="button" class="vj-btn vj-lang" id="vj-lang" aria-label="Language">EN</button></div>
@@ -116,7 +153,7 @@ body{background:var(--bg);color:var(--fg)}
 
   function drawTrend(items,selIdx,key){
     var el=$('vj-trend');el.textContent='';
-    var W=Math.max(280,el.clientWidth||340),H=240,mg={t:10,r:6,b:30,l:42};
+    var W=Math.max(280,el.clientWidth||340),H=Math.round(Math.max(240,Math.min(380,W*0.42))),mg={t:10,r:6,b:30,l:42};el.style.minHeight=H+'px';
     var iw=W-mg.l-mg.r,ih=H-mg.t-mg.b;
     var maxV=d3.max(items,function(d){return Math.max(d.cur,d.prev||0)})||1;
     var y=d3.scaleLinear([0,maxV*1.08],[ih,0]).nice(4);
@@ -296,6 +333,8 @@ body{background:var(--bg);color:var(--fg)}
   }
   $('vj-lang').addEventListener('click',function(){LANG=LANG==='en'?'th':'en';try{history.replaceState(null,'',LANG==='en'?'#en':'#th')}catch(e){}applyLang()});
   window.addEventListener('resize',function(){redraw()});
+  window.addEventListener('load',function(){redraw()});
+  try{var lastW=0;new ResizeObserver(function(){var w=$('vj-trend').clientWidth;if(w&&Math.abs(w-lastW)>2){lastW=w;redraw()}}).observe($('vj-trend'))}catch(e){}
   render({data:DATA});
 })();
 </script>
