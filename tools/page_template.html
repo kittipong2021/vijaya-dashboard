@@ -40,10 +40,10 @@ body{background:var(--bg);color:var(--fg)}
 .vj-bar>i{display:block;height:100%;border-radius:6px}
 .vj-note{font-size:16px;color:var(--muted)}
 .vj-empty{color:var(--muted);font-size:18px;padding-block:24px;text-align:center}
-</style>
+.vj-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.vj-lang{min-height:44px;padding:6px 14px;font-size:16px;flex:none}</style>
 <div class="vj" id="vj">
   <header>
-    <h1 id="vj-title">ยอดขายลูกกุ้ง Vijaya Hatchery</h1>
+    <div class="vj-top"><h1 id="vj-title">ยอดขายลูกกุ้ง Vijaya Hatchery</h1><button type="button" class="vj-btn vj-lang" id="vj-lang" aria-label="Language">EN</button></div>
     <p class="vj-sub" id="vj-asof"> </p>
   </header>
   <section class="vj-filters" id="vj-filters" aria-label="ตัวเลือก"></section>
@@ -250,8 +250,43 @@ body{background:var(--bg);color:var(--fg)}
       bar.appendChild(inner);row.appendChild(t);row.appendChild(bar);reg.appendChild(row);
     });
     if(!byR.length)reg.innerHTML='<div class="vj-empty">ไม่มีข้อมูลตามตัวเลือกนี้</div>';
+    applyLang();
   }
 
+
+  var LANG=(location.hash||'').toLowerCase()==='#en'?'en':'th';
+  var EX={'ยอดขายลูกกุ้ง Vijaya Hatchery':'Vijaya Hatchery PL Sales','ปี':'Year','โรงเพาะ':'Hatchery','ชนิดลูกกุ้ง':'Product','ทั้งหมด':'All','ลูกค้า (ราย)':'Customers','รายการจัดส่ง':'Shipments','ล้านตัว':'million PL','ยอดขายรวม':'Total sales','แตะที่แท่งเพื่อดูตัวเลข':'Tap a bar to see the numbers','ลูกค้า 10 อันดับแรก':'Top 10 customers','ขายไปที่ไหน':'Where it sells','แบ่งตามรหัสตลาดของลูกค้า':'By customer market code','โอริสสาเหนือ':'North Odisha','โอริสสาใต้':'South Odisha','เบงกอลตะวันตก (WB)':'West Bengal (WB)','ภาคกลาง (รหัส C)':'Central (C codes)','อื่น ๆ':'Other',
+  'หน่วย: ล้านตัว (จำนวนลูกกุ้งที่แพ็คจริง) ข้อมูลจากไฟล์ Vijaya Hatchery Sale Raw Data 2023-2026 ช่วงที่ไม่มีบันทึกในไฟล์ QC: ต.ค.–ธ.ค. 2025 และ ม.ค. 2026 มีข้อมูลบางส่วน ชื่อลูกค้าผ่านการรวมชื่อที่สะกดต่างกันแล้ว':'Unit: million PL (post-larvae actually packed). Source: Vijaya Hatchery Sale Raw Data 2023-2026. No records in the QC file for Oct–Dec 2025, and Jan 2026 is partial. Customer names have been merged where spellings differed.'};
+  var EN_MON={'ม.ค.':'Jan','ก.พ.':'Feb','มี.ค.':'Mar','เม.ย.':'Apr','พ.ค.':'May','มิ.ย.':'Jun','ก.ค.':'Jul','ส.ค.':'Aug','ก.ย.':'Sep','ต.ค.':'Oct','พ.ย.':'Nov','ธ.ค.':'Dec'};
+  var RX=[
+   [/ปี (\d{4}) ขายได้ (\S+) ล้านตัว (มากกว่า|น้อยกว่า)ช่วงเดียวกันของปีก่อน (\S+)/,function(m,y,n,c,p){return y+': sold '+n+' million PL, '+p+(c==='มากกว่า'?' higher':' lower')+' than the same period last year'}],
+   [/ปี (\d{4}) ขายได้ (\S+) ล้านตัว/,'$1: sold $2 million PL'],
+   [/รวมทุกปีขายได้ (\S+) ล้านตัว/,'All years combined: sold $1 million PL'],
+   [/(▲|▼) (เพิ่มขึ้น|ลดลง) (\S+) จากช่วงเดียวกันปี (\d{4}) \((\S+) ล้านตัว\)/,function(m,a,w,p,y,v){return a+' '+(w==='เพิ่มขึ้น'?'Up ':'Down ')+p+' vs same period in '+y+' ('+v+' million PL)'}],
+   [/ไม่มีข้อมูลปีก่อนให้เทียบ/,'No prior year to compare'],
+   [/ไม่มีข้อมูลตามตัวเลือกนี้/,'No data for this selection'],
+   [/10 รายนี้รวมกัน (\S+) ของยอดขาย/,'These 10 account for $1 of sales'],
+   [/ยอดขายรายเดือน ปี (\d{4})/,'Monthly sales, $1'],[/ยอดขายรายเดือน/,'Monthly sales'],[/ยอดขายรายปี/,'Yearly sales'],
+   [/ยอดขาย \(ล้านตัว\)/,'Sales (million PL)'],[/ปีล่าสุดยังไม่ครบปี/,'Latest year is incomplete'],
+   [/ยอดขายรวม ตั้งแต่ปี (\d{4})/,'Total sales since $1'],[/ยอดขายรวม ปี (\d{4})/,'Total sales $1'],
+   [/ข้อมูลถึง /,'Data as of '],[/ ล้านตัว/g,' million PL'],[/ปี (\d{4})/g,'$1']];
+  function tr(s){
+    var t=s.trim();if(EX[t]!==undefined)return s.replace(t,EX[t]);
+    RX.forEach(function(r){s=s.replace(r[0],r[1])});
+    Object.keys(EN_MON).forEach(function(k){s=s.split(k).join(EN_MON[k])});
+    return s;
+  }
+  function applyLang(){
+    var w=document.createTreeWalker($('vj'),NodeFilter.SHOW_TEXT),n,btn=$('vj-lang');
+    while((n=w.nextNode())){
+      if(btn.contains(n))continue;
+      if(n._th===undefined||(n._out!==undefined&&n.nodeValue!==n._out))n._th=n.nodeValue;
+      n.nodeValue=LANG==='en'?tr(n._th):n._th;n._out=n.nodeValue;
+    }
+    btn.textContent=LANG==='en'?'ไทย':'EN';
+    document.documentElement.lang=LANG;
+  }
+  $('vj-lang').addEventListener('click',function(){LANG=LANG==='en'?'th':'en';try{history.replaceState(null,'',LANG==='en'?'#en':'#th')}catch(e){}applyLang()});
   window.addEventListener('resize',function(){redraw()});
   render({data:DATA});
 })();
