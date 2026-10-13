@@ -22,7 +22,11 @@ def main(src, dst):
         q = str(r[9]).replace(',', '')
         if not q or r[0] not in H or r[2] not in P:
             continue
-        dd, mm, yy = map(int, r[1].split('/'))
+        ds = str(r[1])
+        if '-' in ds:
+            yy, mm, dd = map(int, ds.split('-'))
+        else:
+            dd, mm, yy = map(int, ds.split('/'))
         c = seen.setdefault(r[5], len(seen))
         if c == len(names):
             names.append(r[5])
