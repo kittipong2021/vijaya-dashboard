@@ -40,12 +40,37 @@ body{background:var(--bg);color:var(--fg)}
 .vj-bar>i{display:block;height:100%;border-radius:6px}
 .vj-note{font-size:16px;color:var(--muted)}
 .vj-empty{color:var(--muted);font-size:18px;padding-block:24px;text-align:center}
-.vj-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.vj-lang{min-height:44px;padding:6px 14px;font-size:16px;flex:none}</style>
+.vj-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.vj-lang{min-height:44px;padding:6px 14px;font-size:16px;flex:none}.vj-help{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:4px 16px}.vj-help summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center}.vj-help summary:focus-visible{outline:3px solid var(--fg)}.vj-help ol{margin:4px 0 8px;padding-left:22px;display:flex;flex-direction:column;gap:8px;font-size:17px}.vj-help p{font-size:16px;color:var(--muted);padding-bottom:12px}</style>
 <div class="vj" id="vj">
   <header>
     <div class="vj-top"><h1 id="vj-title">ยอดขายลูกกุ้ง Vijaya Hatchery</h1><button type="button" class="vj-btn vj-lang" id="vj-lang" aria-label="Language">EN</button></div>
     <p class="vj-sub" id="vj-asof"> </p>
   </header>
+  <details class="vj-help" id="vj-help">
+    <summary><span data-lang="th">วิธีใช้งาน</span><span data-lang="en" hidden>How to use</span></summary>
+    <div data-lang="th">
+      <ol>
+        <li>เลือก <b>ปี</b> <b>โรงเพาะ</b> และ <b>ชนิดลูกกุ้ง</b> ด้วยปุ่มด้านบน (ทั้งหมด = ไม่กรอง) ตัวเลขทุกส่วนในหน้าเปลี่ยนตามที่เลือก</li>
+        <li>อ่านประโยคสรุปและการ์ดยอดขายรวม: ▲ สีเขียว = มากกว่าช่วงเดียวกันของปีก่อน, ▼ สีแดง = น้อยกว่า (ปีล่าสุดเทียบถึงวันที่ข้อมูลล่าสุดเท่านั้น)</li>
+        <li><b>กราฟรายเดือน:</b> แท่งเขียว = ปีที่เลือก แท่งเทา = ปีก่อน แตะแท่งเพื่อดูตัวเลขของเดือนนั้น และให้ "ลูกค้า 10 อันดับแรก" กับ "ขายไปที่ไหน" แสดงเฉพาะเดือนนั้น แตะแท่งเดิมซ้ำเพื่อยกเลิก</li>
+        <li><b>ลูกค้า 10 อันดับแรก:</b> ยอดเป็นล้านตัว แถบยาวเทียบกับอันดับ 1 และบอกสัดส่วนที่ 10 รายนี้ถือของยอดขายทั้งหมด</li>
+        <li><b>ขายไปที่ไหน:</b> สัดส่วนยอดขายแยกตามรหัสตลาดของลูกค้า (โอริสสาเหนือ/ใต้, เบงกอลตะวันตก, ภาคกลาง, อื่น ๆ)</li>
+        <li>ปุ่ม <b>EN / ไทย</b> มุมขวาบนใช้สลับภาษา</li>
+      </ol>
+      <p>หมายเหตุ: ข้อมูลอัปเดตทุกคืนจากไฟล์ QC ไม่มีบันทึกเดือน ต.ค.–ธ.ค. 2025 และ ม.ค. 2026 มีข้อมูลบางส่วน</p>
+    </div>
+    <div data-lang="en" hidden>
+      <ol>
+        <li>Pick the <b>Year</b>, <b>Hatchery</b> and <b>Product</b> with the buttons at the top (All = no filter). Every number on the page follows your choice.</li>
+        <li>Read the summary sentence and the total sales card: green ▲ = higher than the same period last year, red ▼ = lower (for the latest year, the comparison runs only up to the latest data date).</li>
+        <li><b>Monthly chart:</b> green bars = selected year, grey bars = previous year. Tap a bar to see that month's numbers and to make "Top 10 customers" and "Where it sells" show that month only. Tap the same bar again to clear.</li>
+        <li><b>Top 10 customers:</b> volume in million PL; the bar length is relative to rank 1, and the note shows the share these 10 hold of total sales.</li>
+        <li><b>Where it sells:</b> sales share by customer market code (North/South Odisha, West Bengal, Central, Other).</li>
+        <li>The <b>EN / ไทย</b> button at the top right switches the language.</li>
+      </ol>
+      <p>Note: data updates every night from the QC file. There are no records for Oct–Dec 2025, and Jan 2026 is partial.</p>
+    </div>
+  </details>
   <section class="vj-filters" id="vj-filters" aria-label="ตัวเลือก"></section>
   <p class="vj-take" id="vj-take"> </p>
 
@@ -290,6 +315,7 @@ body{background:var(--bg);color:var(--fg)}
       if(n._th===undefined||(n._out!==undefined&&n.nodeValue!==n._out))n._th=n.nodeValue;
       n.nodeValue=LANG==='en'?tr(n._th):n._th;n._out=n.nodeValue;
     }
+    Array.prototype.forEach.call(document.querySelectorAll('#vj [data-lang]'),function(e){e.hidden=e.getAttribute('data-lang')!==LANG});
     btn.textContent=LANG==='en'?'ไทย':'EN';
     document.documentElement.lang=LANG;
   }
