@@ -209,8 +209,8 @@ const CROPS = [...new Set(B.map(b=>b.crop))].sort((a,b)=>a-b);
 /* ───────── state ───────── */
 const S = {lang:'en',layout:'auto',basis:'stock',excl:false,metric:'pl',f:{},trendMode:'cal',
   scoreDim:'year',scoreSort:{k:null,dir:-1},areaDim:'area',cmp:{on:false,dim:'year',items:[]},tpage:0,tsort:{k:'sd',dir:-1}};
-try{const p=JSON.parse(localStorage.getItem('vjqc')||'{}');['lang','layout','basis','excl'].forEach(k=>{if(p[k]!==undefined)S[k]=p[k];});}catch(e){}
-const save=()=>{try{localStorage.setItem('vjqc',JSON.stringify({lang:S.lang,layout:S.layout,basis:S.basis,excl:S.excl}));}catch(e){}};
+try{const p=JSON.parse(localStorage.getItem('vjqc')||'{}');['basis','excl'].forEach(k=>{if(p[k]!==undefined)S[k]=p[k];});}catch(e){}
+const save=()=>{try{localStorage.setItem('vjqc',JSON.stringify({basis:S.basis,excl:S.excl}));}catch(e){}};
 const L=(en,th)=>S.lang==='th'?th:en;
 
 /* ───────── labels ───────── */
@@ -386,10 +386,6 @@ function renderChrome(){
   $('ctrls').innerHTML=`
     <div class="ctl"><span class="lbl">${L('Language','ภาษา')}</span><div class="seg" role="group" aria-label="language">
       <button data-act="lang" data-v="th" aria-pressed="${S.lang==='th'}">ไทย</button><button data-act="lang" data-v="en" aria-pressed="${S.lang==='en'}">EN</button></div></div>
-    <div class="ctl"><span class="lbl">${L('Screen','หน้าจอ')}</span><div class="seg" role="group" aria-label="layout">
-      <button data-act="layout" data-v="auto" aria-pressed="${S.layout==='auto'}">${L('Auto','อัตโนมัติ')}</button>
-      <button data-act="layout" data-v="landscape" aria-pressed="${S.layout==='landscape'}">16:9</button>
-      <button data-act="layout" data-v="portrait" aria-pressed="${S.layout==='portrait'}">9:16</button></div></div>
     <div class="ctl"><span class="lbl">${L('Time basis','ฐานเวลา')}</span><div class="seg" role="group" aria-label="basis">
       <button data-act="basis" data-v="stock" aria-pressed="${S.basis==='stock'}">${L('Np stocking date','วันที่ลง Np')}</button>
       <button data-act="basis" data-v="sell" aria-pressed="${S.basis==='sell'}">${L('Selling date','วันที่ขาย')}</button></div></div>
@@ -740,7 +736,6 @@ document.addEventListener('click',e=>{
   const a=t.dataset.act,v=t.dataset.v,num=x=>x!==undefined&&x!==''&&!isNaN(x)?+x:x;
   switch(a){
     case 'lang':S.lang=v;save();break;
-    case 'layout':S.layout=v;save();break;
     case 'basis':S.basis=v;delete S.f.year;delete S.f.month;save();break;
     case 'metric':S.metric=v;break;
     case 'excl':break;

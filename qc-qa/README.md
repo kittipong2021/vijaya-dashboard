@@ -1,8 +1,8 @@
 # QC & QA Dashboard
 
 Interactive dashboard for the Vijaya 1 and Vijaya 2 hatcheries (2023 to 2026): Np stocking, PL sold,
-DOC, TL, ADL, %SR, market area and salinity by month, year, hatchery and unit. Thai and English,
-16:9 and 9:16, click-to-filter on every chart and a compare mode.
+DOC, TL, ADL, %SR, market area and salinity by month, year, hatchery and unit. Thai and English (opens in English each visit),
+layout adapts automatically to landscape or portrait screens, click-to-filter on every chart and a compare mode.
 
 | File | Purpose |
 |---|---|
