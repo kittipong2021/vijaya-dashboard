@@ -724,13 +724,21 @@ function renderGloss(){
 /* ───────── voice narration (browser speech synthesis) ───────── */
 const TTS='speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='undefined';
 const V={on:false,el:null,timer:null};
+// The speech API does not report gender, so male voices are picked by well-known voice names.
+const MALE=/\b(male|man|daniel|alex|fred|david|mark|george|guy|ryan|james|thomas|oliver|arthur|rishi|aaron|niwat|pattara|paul|stefan|eric|christopher|brian|davis|jason|tony)\b/i;
+const FEMALE=/\b(female|woman|samantha|karen|victoria|zira|susan|hazel|aria|jenny|kanya|narisa|premwadee|google\s*ไทย|kate|moira|tessa|fiona|sara|emma|libby)\b/i;
+function maleVoice(lang){
+  const pre=lang.slice(0,2).toLowerCase(),vs=speechSynthesis.getVoices().filter(x=>x.lang.toLowerCase().startsWith(pre));
+  return vs.find(x=>MALE.test(x.name)&&!FEMALE.test(x.name))||null;
+}
 function speak(text){
   if(!V.on||!TTS||!text)return;
   speechSynthesis.cancel();
   text=String(text).replace(/(\d)\s*%/g,'$1'+(S.lang==='th'?' เปอร์เซ็นต์':' percent')).replace(/\.\s*\./g,'.');
   const u=new SpeechSynthesisUtterance(text);u.lang=S.lang==='th'?'th-TH':'en-US';
-  const pre=u.lang.slice(0,2),vo=speechSynthesis.getVoices().find(x=>x.lang.toLowerCase().startsWith(pre));
-  if(vo)u.voice=vo;
+  const vo=maleVoice(u.lang);
+  if(vo){u.voice=vo;u.lang=vo.lang;}
+  u.pitch=vo?0.9:0.6; // no male voice found: lower the pitch
   speechSynthesis.speak(u);
 }
 function snap(){
