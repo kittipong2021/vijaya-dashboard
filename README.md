@@ -316,3 +316,7 @@ with open('index.html', 'w', encoding='utf-8') as f:
     f.write(HTML)
 
 print("สร้าง index.html เสร็จแล้ว")
+
+## QC & QA
+
+The QC & QA dashboard (Vijaya QC Dashboard) source lives in [`qc-qa/`](qc-qa/). See [`qc-qa/README.md`](qc-qa/README.md).
