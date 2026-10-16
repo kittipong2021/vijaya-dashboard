@@ -209,8 +209,8 @@ const CROPS = [...new Set(B.map(b=>b.crop))].sort((a,b)=>a-b);
 /* ───────── state ───────── */
 const S = {lang:'en',layout:'auto',basis:'stock',excl:false,metric:'pl',f:{},trendMode:'cal',
   scoreDim:'year',scoreSort:{k:null,dir:-1},areaDim:'area',cmp:{on:false,dim:'year',items:[]},tpage:0,tsort:{k:'sd',dir:-1}};
-try{const p=JSON.parse(localStorage.getItem('vjqc')||'{}');['basis','excl'].forEach(k=>{if(p[k]!==undefined)S[k]=p[k];});}catch(e){}
-const save=()=>{try{localStorage.setItem('vjqc',JSON.stringify({basis:S.basis,excl:S.excl}));}catch(e){}};
+try{const p=JSON.parse(localStorage.getItem('vjqc')||'{}');['basis'].forEach(k=>{if(p[k]!==undefined)S[k]=p[k];});}catch(e){}
+const save=()=>{try{localStorage.setItem('vjqc',JSON.stringify({basis:S.basis}));}catch(e){}};
 const L=(en,th)=>S.lang==='th'?th:en;
 
 /* ───────── labels ───────── */
@@ -390,8 +390,7 @@ function renderChrome(){
       <button data-act="basis" data-v="stock" aria-pressed="${S.basis==='stock'}">${L('Np stocking date','วันที่ลง Np')}</button>
       <button data-act="basis" data-v="sell" aria-pressed="${S.basis==='sell'}">${L('Selling date','วันที่ขาย')}</button></div></div>
     <div class="ctl"><span class="lbl">${L('Main metric','ตัวชี้วัดหลัก')}</span><select id="metricSel" aria-label="metric">${metricOpts}</select></div>
-    <div class="ctl"><span class="lbl">${L('Compare items','เปรียบเทียบรายการ')}</span><div class="seg"><button data-act="cmp" aria-pressed="${S.cmp.on}">${S.cmp.on?L('Comparing: on','กำลังเปรียบเทียบ'):L('Compare','เปรียบเทียบ')}</button></div></div>
-    <label class="tgl"><input type="checkbox" id="exclSr" ${S.excl?'checked':''}> ${L('Exclude batches with %SR > 100','ตัดล็อตที่ %SR เกิน 100')}</label>`;
+    <div class="ctl"><span class="lbl">${L('Compare items','เปรียบเทียบรายการ')}</span><div class="seg"><button data-act="cmp" aria-pressed="${S.cmp.on}">${S.cmp.on?L('Comparing: on','กำลังเปรียบเทียบ'):L('Compare','เปรียบเทียบ')}</button></div></div>`;
 }
 function renderChips(){
   const parts=[];
@@ -767,7 +766,6 @@ document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.tar
 document.addEventListener('change',e=>{
   const t=e.target;
   if(t.id==='metricSel')S.metric=t.value;
-  else if(t.id==='exclSr'){S.excl=t.checked;save();}
   else if(t.id==='cmpDim'){S.cmp.dim=t.value;const vs=dimValues(t.value);S.cmp.items=t.value==='year'?vs.slice(-2):vs.slice(0,2);delete S.f[t.value];}
   else if(t.id==='scoreDim'){S.scoreDim=t.value;S.scoreSort={k:null,dir:-1};}
   else return;
