@@ -384,13 +384,14 @@ function renderChrome(){
   $('sub').textContent=L(`Hatcheries VJ1 & VJ2 · Np stocking, PL packing and QC · ${y0}–${y1}`,`โรงเพาะ VJ1 และ VJ2 · การลง Np, การแพ็ค PL และ QC · ${y0}–${y1}`);
   const metricOpts=Object.keys(MET).map(k=>`<option value="${k}"${k===S.metric?' selected':''}>${esc(mFull(k))}</option>`).join('');
   $('ctrls').innerHTML=`
+    <div class="ctl"><span class="lbl">${L('Year','ปี')}</span><div class="seg" role="group" aria-label="year">${YEARS.map(y=>`<button data-act="toggle" data-dim="year" data-v="${y}" aria-pressed="${isSel('year',y)}">${y}</button>`).join('')}</div></div>
+    <div class="ctl"><span class="lbl">${L('Compare items','เปรียบเทียบรายการ')}</span><div class="seg"><button data-act="cmp" aria-pressed="${S.cmp.on}">${S.cmp.on?L('Comparing: on','กำลังเปรียบเทียบ'):L('Compare','เปรียบเทียบ')}</button></div></div>
     <div class="ctl"><span class="lbl">${L('Language','ภาษา')}</span><div class="seg" role="group" aria-label="language">
       <button data-act="lang" data-v="th" aria-pressed="${S.lang==='th'}">ไทย</button><button data-act="lang" data-v="en" aria-pressed="${S.lang==='en'}">EN</button></div></div>
     <div class="ctl"><span class="lbl">${L('Time basis','ฐานเวลา')}</span><div class="seg" role="group" aria-label="basis">
       <button data-act="basis" data-v="stock" aria-pressed="${S.basis==='stock'}">${L('Np stocking date','วันที่ลง Np')}</button>
       <button data-act="basis" data-v="sell" aria-pressed="${S.basis==='sell'}">${L('Selling date','วันที่ขาย')}</button></div></div>
-    <div class="ctl"><span class="lbl">${L('Main metric','ตัวชี้วัดหลัก')}</span><select id="metricSel" aria-label="metric">${metricOpts}</select></div>
-    <div class="ctl"><span class="lbl">${L('Compare items','เปรียบเทียบรายการ')}</span><div class="seg"><button data-act="cmp" aria-pressed="${S.cmp.on}">${S.cmp.on?L('Comparing: on','กำลังเปรียบเทียบ'):L('Compare','เปรียบเทียบ')}</button></div></div>`;
+    <div class="ctl"><span class="lbl">${L('Main metric','ตัวชี้วัดหลัก')}</span><select id="metricSel" aria-label="metric">${metricOpts}</select></div>`;
 }
 function renderChips(){
   const parts=[];
