@@ -379,7 +379,7 @@ const portrait=()=>$('app').dataset.layout==='portrait';
 /* ───────── chrome ───────── */
 function renderChrome(){
   document.documentElement.lang=S.lang;
-  $('ttl').textContent=L('Vijaya QC Dashboard','แดชบอร์ดคุณภาพและผลการเลี้ยง Vijaya');
+  $('ttl').textContent=L(`Summary of VJ1 & VJ2 Hatchery (${YEARS[0]} to ${YEARS[YEARS.length-1]})`,`สรุปข้อมูล VJ1, VJ2 Hatchery (${YEARS[0]} ถึง ${YEARS[YEARS.length-1]})`);
   const y0=YEARS[0],y1=YEARS[YEARS.length-1];
   $('sub').textContent=L(`Hatcheries VJ1 & VJ2 · Np stocking, PL packing and QC · ${y0}–${y1}`,`โรงเพาะ VJ1 และ VJ2 · การลง Np, การแพ็ค PL และ QC · ${y0}–${y1}`);
   const metricOpts=Object.keys(MET).map(k=>`<option value="${k}"${k===S.metric?' selected':''}>${esc(mFull(k))}</option>`).join('');
