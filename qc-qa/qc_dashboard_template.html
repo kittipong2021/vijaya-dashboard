@@ -157,6 +157,9 @@ dl.gl dt{font-weight:600}
 dl.gl dd{margin:0;color:var(--ink2)}
 .note{background:var(--warn-bg);color:var(--ink);border-radius:8px;padding:8px 10px;font-size:.88em;margin-top:8px}
 .foot{margin-top:14px;color:var(--muted);font-size:.82em}
+@media (max-width:900px){
+  .top{position:static}
+}
 @media (max-width:640px){
   .seg button{min-height:38px;padding:7px 12px}
   .kpi .v{font-size:1.5em}
@@ -809,10 +812,21 @@ function render(){
   renderKpi();renderTrend();renderHatch();renderUnits();renderHeat();renderScore();renderArea();renderSal();renderTanks();renderGloss();
 }
 
+/* phone / tablet: the filter bar scrolls away with the page; after a pick in it, glide down to the data */
+let scrollT;
+function scrollToData(inCtrls){
+  if(!matchMedia('(max-width:900px)').matches||!inCtrls)return;
+  clearTimeout(scrollT);
+  scrollT=setTimeout(()=>{
+    const el=$('cmpbar').hidden?$('cKpi'):$('cmpbar');
+    const y=el.getBoundingClientRect().top+scrollY-8;
+    if(y>scrollY)scrollTo({top:y,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});
+  },900);
+}
 /* ───────── events ───────── */
 document.addEventListener('click',e=>{
   const t=e.target.closest('[data-act]');if(!t)return;
-  const before=snap();
+  const before=snap(),inCtrls=!!t.closest('#ctrls');
   const a=t.dataset.act,v=t.dataset.v,num=x=>x!==undefined&&x!==''&&!isNaN(x)?+x:x;
   switch(a){
     case 'lang':S.lang=v;save();break;
@@ -843,17 +857,19 @@ document.addEventListener('click',e=>{
     default:return;
   }
   render();
+  if(a==='toggle'||a==='basis'||a==='cmp')scrollToData(inCtrls);
   if(a!=='voice'&&a!=='lang')narrate(before);
 });
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[role="button"][data-act]')){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
 document.addEventListener('change',e=>{
   const t=e.target;
-  const before=snap();
+  const before=snap(),inCtrls=!!t.closest('#ctrls');
   if(t.id==='metricSel')S.metric=t.value;
   else if(t.id==='cmpDim'){S.cmp.dim=t.value;const vs=dimValues(t.value);S.cmp.items=t.value==='year'?vs.slice(-2):vs.slice(0,2);delete S.f[t.value];}
   else if(t.id==='scoreDim'){S.scoreDim=t.value;S.scoreSort={k:null,dir:-1};}
   else return;
   render();
+  if(t.id==='metricSel')scrollToData(inCtrls);
   narrate(before);
 });
 const tip=$('tip');
