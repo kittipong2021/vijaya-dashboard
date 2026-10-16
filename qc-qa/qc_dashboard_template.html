@@ -386,6 +386,7 @@ function renderChrome(){
   $('ctrls').innerHTML=`
     <div class="ctl"><span class="lbl">${L('Year','ปี')}</span><div class="seg" role="group" aria-label="year">${YEARS.map(y=>`<button data-act="toggle" data-dim="year" data-v="${y}" aria-pressed="${isSel('year',y)}">${y}</button>`).join('')}</div></div>
     <div class="ctl"><span class="lbl">${L('Compare items','เปรียบเทียบรายการ')}</span><div class="seg"><button data-act="cmp" aria-pressed="${S.cmp.on}">${S.cmp.on?L('Comparing: on','กำลังเปรียบเทียบ'):L('Compare','เปรียบเทียบ')}</button></div></div>
+    <div class="ctl"><span class="lbl">${L('Voice','เสียงบรรยาย')}</span><div class="seg"><button data-act="voice" aria-pressed="${V.on}"${TTS?'':' disabled title="Speech is not supported in this browser"'}>${V.on?L('🔊 On','🔊 เปิด'):L('🔇 Off','🔇 ปิด')}</button></div></div>
     <div class="ctl"><span class="lbl">${L('Language','ภาษา')}</span><div class="seg" role="group" aria-label="language">
       <button data-act="lang" data-v="th" aria-pressed="${S.lang==='th'}">ไทย</button><button data-act="lang" data-v="en" aria-pressed="${S.lang==='en'}">EN</button></div></div>
     <div class="ctl"><span class="lbl">${L('Time basis','ฐานเวลา')}</span><div class="seg" role="group" aria-label="basis">
@@ -719,6 +720,76 @@ function renderGloss(){
     `ที่มา: ${D.source} · สร้างเมื่อ ${D.built} · ${nf(B.length,0)} ล็อต ${nf(R.length,0)} รายการขาย · ${nf(flagged,0)} ล็อตมี %SR เกิน 100 (Np ตามบิล)`);
 }
 
+
+/* ───────── voice narration (browser speech synthesis) ───────── */
+const TTS='speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='undefined';
+const V={on:false,el:null,timer:null};
+function speak(text){
+  if(!V.on||!TTS||!text)return;
+  speechSynthesis.cancel();
+  text=String(text).replace(/(\d)\s*%/g,'$1'+(S.lang==='th'?' เปอร์เซ็นต์':' percent')).replace(/\.\s*\./g,'.');
+  const u=new SpeechSynthesisUtterance(text);u.lang=S.lang==='th'?'th-TH':'en-US';
+  const pre=u.lang.slice(0,2),vo=speechSynthesis.getVoices().find(x=>x.lang.toLowerCase().startsWith(pre));
+  if(vo)u.voice=vo;
+  speechSynthesis.speak(u);
+}
+function snap(){
+  const s=sel(),m=gm(s);
+  const f=Object.keys(S.f).filter(k=>S.f[k].size).map(k=>dimName(k)+' '+[...S.f[k]].sort((a,b)=>a-b).map(v=>valLabel(k,v)).join(', '));
+  return {m,f,metric:S.metric,cmp:S.cmp.on?S.cmp.dim+':'+S.cmp.items.join(','):'',basis:S.basis};
+}
+const unitSay=k=>{const u=mUnit(k);return u?' '+u:'';};
+const dirSay=(k,a,b)=>{
+  if(a==null||b==null)return '';
+  const d=a-b;if(Math.abs(d)<Math.pow(10,-MET[k][4])/2)return L('no change','เท่าเดิม');
+  const p=b?Math.abs(d/b*100):null,pt=p!=null&&isFinite(p)?' '+nf(p,1)+'%':'';
+  return (d>0?L('up','เพิ่มขึ้น'):L('down','ลดลง'))+pt;
+};
+function narrate(before){
+  if(!V.on)return;
+  const now=snap(),parts=[];
+  if(S.cmp.on&&now.cmp){
+    const k=S.metric,items=S.cmp.items;
+    if(items.length<2){speak(L('Pick at least two items to compare.','เลือกอย่างน้อยสองรายการเพื่อเปรียบเทียบ'));return;}
+    const ms=items.map(v=>gm(sel([S.cmp.dim],{[S.cmp.dim]:v})));
+    parts.push(L(`Comparing ${dimName(S.cmp.dim)} on ${mName(k)}.`,`เปรียบเทียบ${dimName(S.cmp.dim)} ตัวชี้วัด ${mName(k)}`));
+    items.forEach((v,i)=>{
+      let t=`${valLabel(S.cmp.dim,v)}: ${fm(k,ms[i][k])}${unitSay(k)}`;
+      if(i>0){const d=dirSay(k,ms[i][k],ms[0][k]);if(d)t+=L(`, ${d} versus ${valLabel(S.cmp.dim,items[0])}`,`, ${d} เทียบกับ ${valLabel(S.cmp.dim,items[0])}`);}
+      parts.push(t+'.');
+    });
+    speak(parts.join(' '));return;
+  }
+  const sameSel=before.f.join('|')===now.f.join('|')&&before.cmp===now.cmp&&before.basis===now.basis;
+  if(sameSel){
+    if(before.metric===now.metric)return;
+    speak(L(`Main metric ${mName(now.metric)}: ${fm(now.metric,now.m[now.metric])}${unitSay(now.metric)}.`,`ตัวชี้วัดหลัก ${mName(now.metric)} เท่ากับ ${fm(now.metric,now.m[now.metric])}${unitSay(now.metric)}`));
+    return;
+  }
+  parts.push(now.f.length?L('Selection: ','ที่เลือก: ')+now.f.join('; ')+'.':L('Showing all data.','แสดงข้อมูลทั้งหมด'));
+  parts.push(L(`${nf(now.m.tanks,0)} tank batches.`,`${nf(now.m.tanks,0)} ล็อต`));
+  for(const k of ['pl','sr','doc','tl','adl','sal']){
+    const d=dirSay(k,now.m[k],before.m[k]);
+    if(now.m[k]==null)continue;
+    parts.push(`${mName(k)} ${fm(k,now.m[k])}${unitSay(k)}${d&&d!==L('no change','เท่าเดิม')?', '+d:''}.`);
+  }
+  speak(parts.join(' '));
+}
+function hoverSay(e){
+  if(!V.on)return;
+  const t=e.target.closest&&e.target.closest('[data-tip]');
+  if(t===V.el)return;
+  V.el=t;clearTimeout(V.timer);
+  if(!t)return;
+  V.timer=setTimeout(()=>speak(t.dataset.tip.split('\n').join('. ')),450);
+}
+function toggleVoice(){
+  V.on=!V.on;
+  if(V.on)speak(L('Voice narration on. Hover over a chart point, or click to filter, and I will describe it.','เปิดเสียงบรรยายแล้ว เลื่อนเมาส์ไปที่จุดบนกราฟ หรือคลิกเพื่อกรอง แล้วจะอ่านสรุปให้ฟัง'));
+  else if(TTS)speechSynthesis.cancel();
+}
+if(TTS)speechSynthesis.getVoices();
+
 /* ───────── render all ───────── */
 function applyLayout(){
   let l=S.layout;
@@ -733,9 +804,11 @@ function render(){
 /* ───────── events ───────── */
 document.addEventListener('click',e=>{
   const t=e.target.closest('[data-act]');if(!t)return;
+  const before=snap();
   const a=t.dataset.act,v=t.dataset.v,num=x=>x!==undefined&&x!==''&&!isNaN(x)?+x:x;
   switch(a){
     case 'lang':S.lang=v;save();break;
+    case 'voice':toggleVoice();break;
     case 'basis':S.basis=v;delete S.f.year;delete S.f.month;save();break;
     case 'metric':S.metric=v;break;
     case 'excl':break;
@@ -762,15 +835,18 @@ document.addEventListener('click',e=>{
     default:return;
   }
   render();
+  if(a!=='voice'&&a!=='lang')narrate(before);
 });
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[role="button"][data-act]')){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
 document.addEventListener('change',e=>{
   const t=e.target;
+  const before=snap();
   if(t.id==='metricSel')S.metric=t.value;
   else if(t.id==='cmpDim'){S.cmp.dim=t.value;const vs=dimValues(t.value);S.cmp.items=t.value==='year'?vs.slice(-2):vs.slice(0,2);delete S.f[t.value];}
   else if(t.id==='scoreDim'){S.scoreDim=t.value;S.scoreSort={k:null,dir:-1};}
   else return;
   render();
+  narrate(before);
 });
 const tip=$('tip');
 function showTip(e){
@@ -784,6 +860,7 @@ function showTip(e){
   tip.style.left=Math.max(8,x)+'px';tip.style.top=Math.max(8,y)+'px';
 }
 document.addEventListener('pointermove',showTip);
+document.addEventListener('pointermove',hoverSay);
 document.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse')showTip(e);});
 document.addEventListener('scroll',()=>{tip.hidden=true;},true);
 let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(render,120);});
