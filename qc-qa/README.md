@@ -12,12 +12,16 @@ layout adapts automatically to landscape or portrait screens, click-to-filter on
 ## Rebuild
 
 ```bash
+mkdir -p data && cp /path/to/QC_Tank_Integrated_Report_2026.xlsx data/
 python3 build_qc_dashboard.py
 ```
 
-The script uses absolute paths set at the top (`BASE`, `REPORT`, `TEMPLATE`, `OUT`). Adjust `BASE` to the
-machine you run it on. The report itself is produced by `qc_tank_integrated_final.py` in the hatchery
-workspace and is not stored here.
+Defaults: report `data/QC_Tank_Integrated_Report_2026.xlsx`, output `dist/QC_Tank_Dashboard.html`. Override with the
+`QC_REPORT`, `QC_TEMPLATE` and `QC_OUT` environment variables. Every chart and value is computed from the report, so a
+new report gives a new dashboard.
+
+Automatic rebuild: the private repo `kittipong2021/vijaya-dashboard-private` runs this script in GitHub Actions
+whenever `data/QC_Tank_Integrated_Report_2026.xlsx` is pushed (see its `.github/workflows/build-qc.yml`).
 
 ## Data privacy
 

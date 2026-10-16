@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Build the interactive QC dashboard (single HTML file).
 
-Reads  Output/QC/QC_Tank_Integrated_Report_2026.xlsx   (sheets Vijaya1, Vijaya2)
-Uses   Working/qc_dashboard_template.html               (layout, charts, TH/EN text)
-Writes Output/Dashboard/QC_Tank_Dashboard.html          (data embedded, works offline)
+Reads  data/QC_Tank_Integrated_Report_2026.xlsx   (sheets Vijaya1, Vijaya2)
+Uses   qc_dashboard_template.html                  (layout, charts, TH/EN text)
+Writes dist/QC_Tank_Dashboard.html                 (data embedded, works offline)
 
 Data model handed to the page:
   batches : one entry per tank batch  (Hatchery, Unit, Crop, Tank, Np stocking date)
@@ -21,10 +21,11 @@ import sys
 import numpy as np
 import pandas as pd
 
-BASE = "/Volumes/Work/Documents:Claude_Work:Input"
-REPORT = f"{BASE}/Output/QC/QC_Tank_Integrated_Report_2026.xlsx"
-TEMPLATE = f"{BASE}/Working/qc_dashboard_template.html"
-OUT = f"{BASE}/Output/Dashboard/QC_Tank_Dashboard.html"
+HERE = os.path.dirname(os.path.abspath(__file__))
+# Default layout (works locally and in GitHub Actions); override with env vars if needed.
+REPORT = os.environ.get("QC_REPORT", f"{HERE}/data/QC_Tank_Integrated_Report_2026.xlsx")
+TEMPLATE = os.environ.get("QC_TEMPLATE", f"{HERE}/qc_dashboard_template.html")
+OUT = os.environ.get("QC_OUT", f"{HERE}/dist/QC_Tank_Dashboard.html")
 
 DOC_MAX = 40          # DOC at packing above this is a typo in the source (max seen: 93)
 SAL_MIN, SAL_MAX = 0, 40

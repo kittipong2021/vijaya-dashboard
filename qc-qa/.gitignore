@@ -1,3 +1,4 @@
-# Built dashboards embed production data - keep out of this public repo
-qc-qa/dist/
+# Built dashboards and source data embed production data - keep out of this public repo
+dist/
+data/
 QC_Tank_Dashboard.html
