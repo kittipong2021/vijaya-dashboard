@@ -66,7 +66,7 @@ Any sheet that has a header row with **Hatchery, Packing Date, Customer Name, Fe
 (optional: `Sum of Total PL Selling (Mil.)`). `Feed Back` = `Satisfied` → **Success**, `Unsatisfied` / `Not satisfied` → **Unsuccess**, blank → ignored.
 
 Matching rule (`tools/feedback_match.py`): hatchery + Section (unit) + Packing Tank + Packing Date (= selling date) finds the tank's invoices;
-the customer name then picks the invoice (same spelling key → ≥ 0.8 similar → the only candidate if ≥ 0.5 similar → packed quantity).
+the customer name then picks the invoice: same spelling key → ≥ 0.8 similar → 0.5–0.8 similar when it is the only candidate, clearly better than the others (gap ≥ 0.15) or has the same quantity → a lower similarity only if the single candidate has exactly the same packed quantity. Anything else is left unmatched, never guessed. Every non-exact match is listed with its evidence in `<out>_feedback_review.xlsx` next to the dashboard file.
 The **Crop No.** is not used (feedback files may count crops continuously while the QC file restarts at 1 each year).
 In the Tanks table the customer name is underlined **green = Success**, **grey = Unsuccess**, no line = no feedback; a customer with both results on one tank counts as Unsuccess. The build prints how many records were matched.
-Validated on Vijaya: 1,996 feedback records → 1,991 matched (99.7 %), 1,948 invoices carry a result (1,288 Success, 660 Unsuccess).
+Validated on Vijaya: 1,996 feedback records → 1,993 matched, 1 left unmatched (name differs and quantity differs), 2 duplicate records; 1,951 invoices carry a result (1,291 Success, 660 Unsuccess).

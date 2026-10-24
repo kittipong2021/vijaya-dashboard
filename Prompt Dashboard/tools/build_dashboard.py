@@ -144,6 +144,20 @@ if cfg.get('feedback'):     # optional: customer feedback files (Satisfied / Uns
     base = os.path.dirname(os.path.abspath(sys.argv[1]))
     feedback_stats = feedback_match.attach(D, [os.path.join(base, p) for p in cfg['feedback']], [h['sheet'] for h in cfg['hatcheries']])
     print('feedback:', dict(feedback_stats))
+audit = D.pop('_fbaudit', None)
+if audit:      # list every non-exact match with its evidence so a person can review it
+    try:
+        wb2 = openpyxl.Workbook(); w = wb2.active; w.title = 'Feedback match review'
+        w.append(['Result', 'Hatchery', 'Unit', 'Tank', 'Packing date', 'Customer in feedback file', 'Customer in QC file', 'Similarity', 'Feedback qty', 'QC qty', 'Quantity check', 'Market code (feedback)', 'Feedback', 'Other customers on this tank+date'])
+        for a in audit:
+            f, j = a['fb'], a['inv']
+            inv = D['rows'][j] if j is not None else None
+            w.append([a['how'], f['h'], f['unit'], f['tank'], f['date'], f['cust'].strip(), D['customers'][inv[D['rowCols'].index('cu')]] if inv else '', round(a['sim'], 2),
+                      f['qty'], round((inv[D['rowCols'].index('pl')] or 0) * 1e6) if inv else '',
+                      ('' if not inv else 'feedback qty is 0 (tank row of a bigger invoice)' if not f['qty'] else 'same' if abs((inv[D['rowCols'].index('pl')] or 0) * 1e6 - f['qty']) <= max(3, f['qty'] * 1e-4) else 'different (feedback qty is often the invoice total over several tanks)'), f.get('mc', ''), {1: 'Success', 0: 'Unsuccess'}.get(f['fb'], ''),
+                      '; '.join(f'{n} ({q:,})' for n, q in a['cands'])])
+        wb2.save(os.path.splitext(out)[0] + '_feedback_review.xlsx')
+    except Exception as e: print('could not write review file:', e)
 tpl = open(os.path.join(HERE, 'dashboard_template.html'), encoding='utf-8').read()
 open(out, 'w', encoding='utf-8').write(tpl.replace('/*DATA*/null', json.dumps(D, ensure_ascii=False, separators=(',', ':'))))
 print(f'{len(batches)} tanks, {len(rows)} invoices, {len(customers)} customers -> {out}')
