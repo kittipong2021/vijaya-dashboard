@@ -7,13 +7,14 @@ This kit builds the QC Dashboard (Thai / English, responsive) from a branch's QC
 Prompt Dashboard/
 ├─ README.md                      this file
 ├─ PROMPT.md                      the full prompt (paste into Claude to recreate / change the dashboard)
-├─ DATA_FORM.md                   the data form every branch fills in (36 columns)
+├─ DATA_FORM.md                   the data form every branch fills in (36 columns + optional feedback files)
 ├─ DASHBOARD_SPEC.md              what the dashboard shows and how every number is calculated
 ├─ config.example.json            hatchery sheets + title
 ├─ customer_name_map.example.json spelling merges confirmed for Vijaya customers (start empty for a new branch)
 └─ tools/
    ├─ dashboard_template.html     the dashboard code (HTML + CSS + JS, no libraries); data slot: /*DATA*/null
    ├─ build_dashboard.py          xlsx → dashboard HTML (one self-contained file)
+   ├─ feedback_match.py           matches customer feedback (Satisfied/Unsatisfied) to invoices
    └─ make_form_template.py       blank data form with the right headers
 ```
 

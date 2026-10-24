@@ -3,7 +3,8 @@
 
 usage: python3 build_dashboard.py config.json qc_report.xlsx out.html [customer_name_map.json]
 
-config.json: {"title": "...", "hatcheries": [{"sheet": "Vijaya1", "code": "VJ1"}, ...], "source": "file label"}
+config.json: {"title": "...", "hatcheries": [{"sheet": "Vijaya1", "code": "VJ1"}, ...], "source": "file label",
+              "feedback": ["feedback_2025.xlsx", "feedback_2026.xlsx"]}   <- "feedback" is optional, see ../DATA_FORM.md
 See ../DATA_FORM.md for the column layout every hatchery sheet must follow.
 """
 import json, re, sys, datetime as dt, collections, os
@@ -136,6 +137,13 @@ D = dict(units=units, brooders=brooders, products=products, regions=regions, are
          batches=batches, rows=rows, customers=customers,
          hatch=[h['code'] for h in cfg['hatcheries']], hlabel=[h['code']+' · '+h['sheet'] for h in cfg['hatcheries']], title=cfg.get('title', 'QC Dashboard'),
          built=dt.datetime.now().strftime('%Y-%m-%d %H:%M'), source=cfg.get('source', os.path.basename(xlsx)))
+feedback_stats = None
+if cfg.get('feedback'):     # optional: customer feedback files (Satisfied / Unsatisfied) -> underline on customer names
+    sys.path.insert(0, HERE)
+    import feedback_match
+    base = os.path.dirname(os.path.abspath(sys.argv[1]))
+    feedback_stats = feedback_match.attach(D, [os.path.join(base, p) for p in cfg['feedback']], [h['sheet'] for h in cfg['hatcheries']])
+    print('feedback:', dict(feedback_stats))
 tpl = open(os.path.join(HERE, 'dashboard_template.html'), encoding='utf-8').read()
 open(out, 'w', encoding='utf-8').write(tpl.replace('/*DATA*/null', json.dumps(D, ensure_ascii=False, separators=(',', ':'))))
 print(f'{len(batches)} tanks, {len(rows)} invoices, {len(customers)} customers -> {out}')

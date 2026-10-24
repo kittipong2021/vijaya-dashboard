@@ -5,13 +5,14 @@ Everything is client-side from one data object `D` (arrays of tanks `batches` an
 
 ## Layout (top to bottom)
 1. **Header row, left → right (one line ≥ 900 px):** title "Summary of <hatcheries> Hatchery (first year to last year)" · search box · orange note on the right ("Click any bar, point, cell or row to filter every chart. Click again to remove.").
-2. **Control row:** Language (ไทย/EN) · Year buttons · Month select · Week select · Based on (Np stocking | Selling) · Main metric · Compare items · Voice · counter "N tanks · M invoices" (tank = บ่อ, invoice = ใบส่งของ).
+2. **Control row:** Language (ไทย/EN) · Year buttons · Month select · Week select · Based on (Np stocking | Selling) · Main metric · Compare items · Voice · Screen (⤢ Full screen: Fullscreen API, falls back to a wide layout where blocked) · counter "N tanks · M invoices" (tank = บ่อ, invoice = ใบส่งของ).
 3. Active-filter chips with "Clear all".
 4. **Overview tiles:** Tanks (sold / damaged / in progress), Np stocked, PL sold, %SR, DOC, TL, ADL, … each tile click = make it the main metric.
-5. **Trend** (by month, calendar or running), **By hatchery**, **By year**.
+5. **Trend** (by month, calendar or running; lines 3.4 px, the selected year 5.4 px and solid while the others fade), **By hatchery**, **By year**.
 6. **QC index** table (Group by year / month / hatchery / unit / crop / brooder / product / region): Tanks, Np stocked, PL sold, %SR Inv. (becomes %SR PDT when the main metric is PL produced), TL at PL1, TL at DOC10, TL at DOC13, TL at packing, ADL, DOC at packing, %CV at packing, Weight, %ST stress test, Salinity. Green shading = better: higher %SR, TL, ADL; lower DOC, %CV, weight. No colour on Tanks, Np stocked, PL sold, %ST, Salinity. Click a header to sort, a row to filter.
 7. **Market area** (Area | Region) and **Packing salinity** bars; **Top 20 customers** horizontal bars (largest first) that follow every filter; unit/brooder/crop charts.
 8. **Tank table** (25 per page, sortable). Columns: Np stocking date, Unit, Crop, Tank, Brooder, Np, PL, %SR, DOC, TL, ADL, ppt, Market area, Customer, Status. When a tank has several areas/customers the cell shows the first plus a **+N** button; click it to open an extra row under the tank listing every invoice (date, product, customer, area, region, PL); click again to close.
+* **Customer feedback underline:** in the Tanks table (and in the opened invoice rows) the customer name is underlined green = Success (Satisfied), grey = Unsuccess (Unsatisfied); no line = no feedback. Optional input, see DATA_FORM.md.
 9. Glossary ("how numbers are calculated") and footer (source, build time, counts, tanks with %SR > 100).
 
 ## Calculations

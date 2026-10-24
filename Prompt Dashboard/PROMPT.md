@@ -43,5 +43,5 @@ Artifact URL. If no row is newer than the last build, do nothing and report "0 n
 
 ## Change requests that were already made (keep them when regenerating)
 Search box in the header row; Month and Week filters from the database; Compare items and Voice right after Main metric; Language before Year;
-QC "scorecard" renamed **QC index**; Np bill only as the default denominator; "+N" opens invoice rows; %SR column follows Main metric
+QC "scorecard" renamed **QC index**; Trend lines 70 % thicker, selected year thicker and darker; Full-screen button; customer feedback underline (green Success / grey Unsuccess) in the Tanks table; Np bill only as the default denominator; "+N" opens invoice rows; %SR column follows Main metric
 ("%SR Inv." / "%SR PDT").

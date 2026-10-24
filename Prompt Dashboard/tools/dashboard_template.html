@@ -42,6 +42,8 @@ button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #app{max-width:1920px;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:0 28px}
 #app[data-layout="portrait"]{max-width:560px}
+body.wide #app,body.wide #app[data-layout="portrait"]{max-width:none;padding-inline:8px}
+:fullscreen body,:-webkit-full-screen body{overflow:auto;background:var(--bg,var(--surface))}
 @media (min-width:1500px){#app[data-layout="landscape"]{font-size:16px}}
 
 /* top bar */
@@ -106,7 +108,7 @@ svg .val{fill:var(--ink);font-size:12px;font-variant-numeric:tabular-nums}
 svg .axl{fill:var(--ink2);font-size:12px}
 .grd{stroke:var(--grid);stroke-width:1}
 .axs{stroke:var(--axis);stroke-width:1}
-.ln{fill:none;stroke:var(--c);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.ln{fill:none;stroke:var(--c);stroke-width:3.4;stroke-linejoin:round;stroke-linecap:round}
 .pt{fill:var(--c);stroke:var(--surface);stroke-width:2}
 .bar{fill:var(--bar)}
 .bar.sel{fill:var(--accent-strong)}
@@ -186,6 +188,10 @@ dl.gl dd{margin:0;color:var(--ink2)}
   .heat{grid-template-columns:44px repeat(12,minmax(0,1fr))}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+span.fb1,span.fb0{text-decoration:underline;text-decoration-thickness:2.5px;text-underline-offset:4px;text-decoration-skip-ink:none}
+span.fb1{text-decoration-color:var(--fbG,#1a9850)}span.fb0{text-decoration-color:var(--fbX,#8b9098)}
+.fbkey{display:block;margin-top:2px}
+:root{--fbG:#1a9850;--fbX:#8b9098}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--fbG:#4cc38a;--fbX:#a3a9b2}}:root[data-theme="dark"]{--fbG:#4cc38a;--fbX:#a3a9b2}
 button.plus{border:1px solid var(--line,#ccc);background:transparent;border-radius:10px;padding:0 6px;font:inherit;font-size:.85em;cursor:pointer;color:inherit}button.plus.on{background:var(--s3,#cfe);}tr.sub>td{background:color-mix(in oklab,var(--s3,#cfe) 12%,transparent);padding:6px 12px}table.inv{width:auto;min-width:60%}table.inv th{cursor:default}
 </style>
 
@@ -231,7 +237,7 @@ const R = D.rows.map((a,j)=>{const o={j};D.rowCols.forEach((c,k)=>{o[c]=a[k];});
 document.title=D.title;
 const HNAME=h=>(D.hatch[h]+' '+D.hlabel[h]).toLowerCase();
 B.forEach(b=>{b.tx=(HNAME(b.h)+' '+D.units[b.u]+' crop '+b.crop+' tank '+b.tank+' '+(b.br<0?'':D.brooders[b.br])+' '+b.sd).toLowerCase();});
-R.forEach(r=>{r.tx=(B[r.b].tx+' '+(D.customers[r.cu]||'')+' '+(D.areas[r.ar]||'')+' '+(D.regions[r.rg]||'')+' '+(D.products[r.pr]||'')+' '+r.ld).toLowerCase();});
+R.forEach(r=>{r.tx=(B[r.b].tx+' '+(D.customers[r.cu]||'')+' '+(D.areas[r.ar]||'')+' '+(D.regions[r.rg]||'')+' '+(D.products[r.pr]||'')+' '+r.ld+(r.fb===1?' success satisfied':r.fb===0?' unsuccess unsatisfied not satisfied':'')).toLowerCase();});
 const WK={};
 function wkOf(ds){
   const p=ds.split('-').map(Number),d=new Date(Date.UTC(p[0],p[1]-1,p[2]));
@@ -466,7 +472,8 @@ function renderChrome(){
       <button data-act="basis" data-v="sell" aria-pressed="${S.basis==='sell'}">${L('Selling','ขาย')}</button></div></div>
     <div class="ctl"><span class="lbl">${L('Main metric','ตัวชี้วัดหลัก')}</span><select id="metricSel" aria-label="metric">${metricOpts}</select></div>
     <div class="ctl"><span class="lbl">${L('Compare items','เปรียบเทียบรายการ')}</span><div class="seg"><button data-act="cmp" aria-pressed="${S.cmp.on}">${S.cmp.on?L('Comparing: on','กำลังเปรียบเทียบ'):L('Compare','เปรียบเทียบ')}</button></div></div>
-    <div class="ctl"><span class="lbl">${L('Voice','เสียงบรรยาย')}</span><div class="seg"><button data-act="voice" aria-pressed="${V.on}"${TTS?'':' disabled title="Speech is not supported in this browser"'}>${V.on?L('🔊 On','🔊 เปิด'):L('🔇 Off','🔇 ปิด')}</button></div></div>`;
+    <div class="ctl"><span class="lbl">${L('Voice','เสียงบรรยาย')}</span><div class="seg"><button data-act="voice" aria-pressed="${V.on}"${TTS?'':' disabled title="Speech is not supported in this browser"'}>${V.on?L('🔊 On','🔊 เปิด'):L('🔇 Off','🔇 ปิด')}</button></div></div>
+    <div class="ctl"><span class="lbl">${L('Screen','หน้าจอ')}</span><div class="seg"><button data-act="fs" aria-pressed="${isFs()}" title="${L('Full screen on / off (Esc to exit)','เต็มหน้าจอ เปิด / ปิด (กด Esc เพื่อออก)')}">${isFs()?L('⤡ Exit full screen','⤡ ออกจากเต็มจอ'):L('⤢ Full screen','⤢ เต็มจอ')}</button></div></div>`;
   $('hint').textContent=L('Click any bar, point, cell or row to filter every chart. Click again to remove.','คลิกแท่งกราฟ จุด ช่อง หรือแถวใดก็ได้เพื่อกรองทุกส่วน คลิกซ้ำเพื่อยกเลิก');
   $('q').placeholder=L('Search customer, tank, unit, area, product, date…','ค้นหา ชื่อลูกค้า ถัง ยูนิต พื้นที่ ชนิดสินค้า วันที่…');
   $('q').setAttribute('aria-label',L('Search the data','ค้นหาข้อมูล'));
@@ -601,12 +608,13 @@ function renderTrend(){
     if(S.trendMode==='cal'&&isSel('month',x.key))g+=`<rect class="band" x="${X(i)-step/2}" y="${m.t}" width="${step}" height="${ih}"/>`;
     if(S.trendMode==='line'&&isSel('year',x.y)&&isSel('month',x.m))g+=`<rect class="band" x="${X(i)-step/2}" y="${m.t}" width="${step}" height="${ih}"/>`;
   });
+  const dimmed=series.some(s=>!s.selected);
   series.forEach(s=>{
     let d='',pen=false,last=null;
     xs.forEach((x,i)=>{const v=s.get(x);if(v==null){pen=false;return;}d+=(pen?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1);pen=true;last=[X(i),Y(v)];});
-    const op=s.selected?1:.28;
-    g+=`<path class="ln ${s.cls}" d="${d}" style="opacity:${op}"/>`;
-    xs.forEach((x,i)=>{const v=s.get(x);if(v!=null&&(xs.length<=14||i===xs.length-1))g+=`<circle class="pt ${s.cls}" cx="${X(i)}" cy="${Y(v)}" r="${xs.length<=14?3.5:3}" style="opacity:${op}"/>`;});
+    const op=s.selected?1:.3,sw=s.selected&&dimmed?5.4:3.4; /* base 3.4 (+70%); when some series are not selected, the selected ones are thicker and solid, the others thinner and faded */
+    g+=`<path class="ln ${s.cls}" d="${d}" style="opacity:${op};stroke-width:${sw}"/>`;
+    xs.forEach((x,i)=>{const v=s.get(x);if(v!=null&&(xs.length<=14||i===xs.length-1))g+=`<circle class="pt ${s.cls}" cx="${X(i)}" cy="${Y(v)}" r="${(xs.length<=14?4.4:3.8)+(s.selected&&dimmed?1.2:0)}" style="opacity:${op}"/>`;});
   });
   xs.forEach((x,i)=>{
     const lines=series.map(s=>{const v=s.get(x);return v==null?null:`${s.label}: ${fm(k,v)} ${mUnit(k)}`;}).filter(Boolean);
@@ -774,8 +782,12 @@ function renderScore(){
 }
 
 /* ───────── tank table ───────── */
-const more=(r,t)=>{const n=(r.custAll.length>1||r.areaAll.length>1);const x=t===r.cust?r.custAll.length:r.areaAll.length;
-  return x>1?`${esc(t.replace(/ \+\d+$/,''))} <button class="plus${S.open.has(r.b.i)?' on':''}" data-act="tx" data-v="${r.b.i}" title="${L('Show / hide the invoices of this tank','แสดง / ซ่อนใบส่งของของบ่อนี้')}">+${x-1}</button>`:esc(t);};
+/* customer feedback: 1 = Success (Satisfied), 0 = Unsuccess (Unsatisfied), null = none. A customer with mixed feedback on one tank counts as Unsuccess. */
+const fbOf=groups=>groups.map(g=>{const v=g.map(r=>r.fb).filter(x=>x!=null);return v.length?(v.includes(0)?0:1):null;});
+const fbCls=v=>v===1?' class="fb1"':v===0?' class="fb0"':'';
+const more=(r,t)=>{const isC=t===r.cust,all=isC?r.custAll:r.areaAll,x=all.length,name=t.replace(/ \+\d+$/,'');
+  const txt=isC?`<span${fbCls(r.custFb[0])}>${esc(name)}</span>`:esc(name);
+  return x>1?`${txt} <button class="plus${S.open.has(r.b.i)?' on':''}" data-act="tx" data-v="${r.b.i}" title="${L('Show / hide the invoices of this tank','แสดง / ซ่อนใบส่งของของบ่อนี้')}">+${x-1}</button>`:txt;};
 function renderTanks(){
   const c=$('cTanks'),s=sel(),inR=new Uint8Array(R.length);s.R.forEach(r=>{inR[r.j]=1;});
   const rows=s.B.map(b=>{
@@ -785,7 +797,7 @@ function renderTanks(){
     return {b,sd:b.sd,unit:D.units[b.u],crop:b.crop,tank:b.tank,br:b.br<0?'':D.brooders[b.br],np:npOf(b),st:b.st,pl:has?pl:null,
       sr:has&&npOf(b)>0?pl/npOf(b)*100:null,doc:mean(rs,r=>r.doc),tl:mean(rs,r=>r.tl),adl:mean(rs,r=>r.adl),sal:mean(rs,r=>r.sal),
       cust:(()=>{const cu=[...new Set(rs.map(r=>r.cu).filter(x=>x!=null))];return cu.length?D.customers[cu[0]]+(cu.length>1?' +'+(cu.length-1):''):'';})(),
-      rs,custAll:[...new Set(rs.map(r=>r.cu).filter(x=>x!=null))].map(x=>D.customers[x]),
+      rs,custAll:[...new Set(rs.map(r=>r.cu).filter(x=>x!=null))].map(x=>D.customers[x]),custFb:fbOf([...new Set(rs.map(r=>r.cu).filter(x=>x!=null))].map(x=>rs.filter(r=>r.cu===x))),
       area:areas.length?D.areas[areas[0]]+(areas.length>1?' +'+(areas.length-1):''):'',areaAll:areas.map(x=>D.areas[x])};
   });
   const ts=S.tsort;
@@ -793,14 +805,14 @@ function renderTanks(){
   const per=25,pages=Math.max(1,Math.ceil(rows.length/per));S.tpage=Math.min(S.tpage,pages-1);
   const cols=[['sd',L('Np stocking date','วันที่ลง Np'),'t'],['unit',L('Unit','ยูนิต'),'t'],['crop','Crop',''],['tank',L('Tank','บ่อ'),''],['br',L('Brooder','แม่พันธุ์'),'t'],
     ['np','Np ('+mUnit('np')+')',''],['pl','PL ('+mUnit('pl')+')',''],['sr','%SR',''],['doc','DOC',''],['tl','TL (mm)',''],['adl','ADL',''],['sal','ppt',''],['area',L('Market area','พื้นที่ตลาด'),'t'],['cust',L('Customer','ลูกค้า'),'t'],['st',L('Status','สถานะ'),'t']];
-  let h=`<h2>${L('Tanks','รายการบ่อ')}</h2><p class="sub">${L(`${nf(rows.length,0)} tanks in the current selection. Averages are over each tank's invoices.`,`${nf(rows.length,0)} บ่อตามที่เลือก ค่าเฉลี่ยคิดจากใบส่งของของแต่ละบ่อ`)}</p>
+  let h=`<h2>${L('Tanks','รายการบ่อ')}</h2><p class="sub">${L(`${nf(rows.length,0)} tanks in the current selection. Averages are over each tank's invoices.`,`${nf(rows.length,0)} บ่อตามที่เลือก ค่าเฉลี่ยคิดจากใบส่งของของแต่ละบ่อ`)} <span class="fbkey">${L('Customer underline = farm result reported by the customer:','ขีดเส้นใต้ชื่อลูกค้า = ผลการเลี้ยงที่ลูกค้าแจ้งกลับ:')} <span class="fb1">${L('green = Success (Satisfied)','เขียว = สำเร็จ (Satisfied)')}</span> · <span class="fb0">${L('grey = Unsuccess (Unsatisfied)','เทา = ไม่สำเร็จ (Unsatisfied)')}</span> · ${L('no line = no feedback','ไม่มีเส้น = ไม่มีข้อมูล')}</span></p>
     <div class="tw"><table><thead><tr>${cols.map(([k,l,a])=>`<th data-act="tsort" data-v="${k}"${a?' style="text-align:left"':''}>${esc(l)}${ts.k===k?(ts.dir<0?' ▼':' ▲'):''}</th>`).join('')}</tr></thead><tbody>`;
   rows.slice(S.tpage*per,S.tpage*per+per).forEach(r=>{
     h+=`<tr><td class="t">${r.sd}</td><td class="t">${esc(r.unit)}</td><td>${r.crop}</td><td>${esc(r.tank)}</td><td class="t">${esc(r.br)}</td>
       <td>${nf(r.np,2)}</td><td>${nf(r.pl,2)}</td><td>${nf(r.sr,1)}${r.sr>100?`<span class="flag" title="${L('%SR above 100: check the Np recorded for this tank','%SR เกิน 100 ควรตรวจ Np ที่บันทึกของบ่อนี้')}">!</span>`:''}</td>
       <td>${nf(r.doc,1)}</td><td>${nf(r.tl,2)}</td><td>${nf(r.adl,3)}</td><td>${nf(r.sal,1)}</td><td class="t">${more(r,r.area)}</td><td class="t">${more(r,r.cust)}</td><td class="t${r.st==='dmg'?' dmg':''}">${esc(ST_LABEL(r.st))}</td></tr>`;
     if(S.open.has(r.b.i)){const iv=[...r.rs].sort((a,b)=>a.ld<b.ld?-1:a.ld>b.ld?1:0);
-      h+=`<tr class="sub"><td colspan="15"><table class="inv"><thead><tr><th>${L('Selling date','วันที่ขาย')}</th><th>${L('Product','สินค้า')}</th><th>${L('Customer','ลูกค้า')}</th><th>${L('Market area','พื้นที่ตลาด')}</th><th>${L('Region','ภูมิภาค')}</th><th>PL (${mUnit('pl')})</th></tr></thead><tbody>${iv.map(x=>`<tr><td class="t">${x.ld}</td><td class="t">${esc(D.products[x.pr]||'')}</td><td class="t">${esc(D.customers[x.cu]||'')}</td><td class="t">${esc(x.ar>=0?D.areas[x.ar]:'')}</td><td class="t">${esc(x.rg>=0?D.regions[x.rg]:'')}</td><td>${nf(x.pl,2)}</td></tr>`).join('')}</tbody></table></td></tr>`;}
+      h+=`<tr class="sub"><td colspan="15"><table class="inv"><thead><tr><th>${L('Selling date','วันที่ขาย')}</th><th>${L('Product','สินค้า')}</th><th>${L('Customer','ลูกค้า')}</th><th>${L('Market area','พื้นที่ตลาด')}</th><th>${L('Region','ภูมิภาค')}</th><th>PL (${mUnit('pl')})</th><th>${L('Feedback','ผลการเลี้ยง')}</th></tr></thead><tbody>${iv.map(x=>`<tr><td class="t">${x.ld}</td><td class="t">${esc(D.products[x.pr]||'')}</td><td class="t"><span${fbCls(x.fb)}>${esc(D.customers[x.cu]||'')}</span></td><td class="t">${esc(x.ar>=0?D.areas[x.ar]:'')}</td><td class="t">${esc(x.rg>=0?D.regions[x.rg]:'')}</td><td>${nf(x.pl,2)}</td><td class="t">${x.fb===1?L('Success','สำเร็จ'):x.fb===0?L('Unsuccess','ไม่สำเร็จ'):''}</td></tr>`).join('')}</tbody></table></td></tr>`;}
   });
   h+=`</tbody></table></div><div class="pager"><span class="hint">${L('Page','หน้า')} ${S.tpage+1} / ${pages}</span>
     <button data-act="tpage" data-v="-1"${S.tpage===0?' disabled':''}>${L('Previous','ก่อนหน้า')}</button><button data-act="tpage" data-v="1"${S.tpage>=pages-1?' disabled':''}>${L('Next','ถัดไป')}</button></div>`;
@@ -824,6 +836,7 @@ function renderGloss(){
     ['Salinity','ความเค็ม (ppt)','Packing salinity in parts per thousand. An invoice with two values is averaged.','ความเค็มตอนแพ็ค หน่วยส่วนในพัน ถ้าบันทึกสองค่าจะใช้ค่าเฉลี่ย'],
     ['Area / Region','พื้นที่ / ภูมิภาคตลาด','Market area of the customer, and its region from the market code (for example NOD, SOD, WB). Spelling variants are merged.','พื้นที่ตลาดของลูกค้า และภูมิภาคจากรหัสตลาด (เช่น NOD, SOD, WB) รวมชื่อที่สะกดต่างกันแล้ว'],
     ['Customer','ลูกค้า','Customer name from the QC file with spelling variants merged. The search box, the Top 20 chart and the tank table use it.','ชื่อลูกค้าจากไฟล์ QC รวมชื่อที่สะกดต่างกันแล้ว ใช้ในช่องค้นหา กราฟ 20 อันดับ และตารางบ่อ'],
+    ['Customer feedback','ผลการเลี้ยงที่ลูกค้าแจ้งกลับ','Taken from the QC/QA feedback files (2025 and Jan–Jun 2026). Satisfied = Success (green underline on the customer name in the Tanks table), Unsatisfied / Not satisfied = Unsuccess (grey underline). Each feedback record is matched to the tank and selling date, then to the customer. A customer with both results on one tank counts as Unsuccess. No line means no feedback was received.','มาจากไฟล์ QC/QA Feedback (ปี 2025 และ ม.ค.–มิ.ย. 2026) Satisfied = สำเร็จ (ขีดเส้นใต้สีเขียวที่ชื่อลูกค้าในตารางบ่อ) Unsatisfied / Not satisfied = ไม่สำเร็จ (ขีดเส้นใต้สีเทา) จับคู่ข้อมูลตามบ่อและวันที่ขาย แล้วจับคู่ตามลูกค้า ถ้าลูกค้ารายเดียวกันมีทั้งสองผลในบ่อเดียว นับเป็นไม่สำเร็จ ไม่มีเส้นแปลว่ายังไม่มีข้อมูลตอบกลับ'],
     ['Tank','บ่อ','One tank stocked on one date. A tank can have several invoices, so Np is counted once.','บ่อหนึ่งที่ลงในวันหนึ่ง หนึ่งบ่อมีใบส่งของได้หลายใบ Np จึงนับครั้งเดียว'],
     ['Invoice','ใบส่งของ','One selling (packing) record of a tank to a customer, as in the QC file. The invoice counts in this dashboard are these records, not billing documents.','รายการขาย (แพ็ค) หนึ่งรายการของบ่อหนึ่งให้ลูกค้าหนึ่งราย ตามไฟล์ QC จำนวนใบส่งของในหน้านี้นับจากรายการเหล่านี้ ไม่ใช่เอกสารวางบิล'],
     ['Week','สัปดาห์','Weeks run Sunday to Saturday and use the same numbering as the weekly sheet of the QC database (for example W41 = 11/10–17/10 in 2026). The first partial week of a year is merged into week 1. Month and week filters follow the Based on switch: Np stocking date or selling date.','สัปดาห์นับวันอาทิตย์ถึงวันเสาร์ และใช้เลขสัปดาห์เดียวกับชีตรายสัปดาห์ของฐานข้อมูล QC (เช่น W41 = 11/10–17/10 ปี 2026) สัปดาห์แรกที่ไม่เต็มของปีรวมเข้ากับสัปดาห์ที่ 1 ตัวกรองเดือนและสัปดาห์ใช้ตามสวิตช์ "อิงวันที่" คือวันที่ลง Np หรือวันที่ขาย'],
@@ -935,6 +948,17 @@ function scrollToData(inCtrls){
     if(y>scrollY)scrollTo({top:y,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});
   },900);
 }
+/* ───────── full screen: Fullscreen API (desktop, iPad, Android); where it is blocked (iPhone Safari, some embeds) fall back to a wide, edge-to-edge layout ───────── */
+const FSE=document.documentElement,FSR=FSE.requestFullscreen||FSE.webkitRequestFullscreen,FSX=document.exitFullscreen||document.webkitExitFullscreen;
+const isFs=()=>!!(document.fullscreenElement||document.webkitFullscreenElement)||document.body.classList.contains('wide');
+function toggleFs(){
+  if(document.body.classList.contains('wide')){document.body.classList.remove('wide');render();return;}
+  if(document.fullscreenElement||document.webkitFullscreenElement){FSX.call(document);return;}
+  const wide=()=>{document.body.classList.add('wide');window.scrollTo(0,0);render();};
+  if(!FSR){wide();return;}
+  try{const p=FSR.call(FSE);if(p&&p.catch)p.catch(wide);}catch(e){wide();}
+}
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>setTimeout(render,80)));
 /* ───────── events ───────── */
 document.addEventListener('click',e=>{
   const t=e.target.closest('[data-act]');if(!t)return;
@@ -943,6 +967,7 @@ document.addEventListener('click',e=>{
   switch(a){
     case 'lang':S.lang=v;save();break;
     case 'voice':toggleVoice();break;
+    case 'fs':toggleFs();break;
     case 'basis':S.basis=v;delete S.f.year;delete S.f.month;delete S.f.week;save();break;
     case 'metric':S.metric=v;break;
     case 'excl':break;

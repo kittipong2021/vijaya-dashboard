@@ -58,3 +58,15 @@ Blank cells are allowed everywhere except B, C, D, E (tank identity). Dates must
 
 `customer_name_map.json` = `{"VARIANT SPELLING (UPPER CASE)": "CANONICAL NAME", ...}`. The builder also merges spellings that differ only by
 titles (MR, M/S, SRI), PVT LTD / PRIVATE LIMITED or punctuation. Add pairs the owner confirms are the same person.
+
+## Customer feedback files (optional) / ไฟล์ผลการเลี้ยงที่ลูกค้าแจ้งกลับ
+
+List them in `config.json` as `"feedback": ["QC_QA_Feedback_2025.xlsx", "QC_QA_Feedback_2026.xlsx"]` (paths relative to config.json).
+Any sheet that has a header row with **Hatchery, Packing Date, Customer Name, Feed Back, Section, Packing Tank** is read
+(optional: `Sum of Total PL Selling (Mil.)`). `Feed Back` = `Satisfied` → **Success**, `Unsatisfied` / `Not satisfied` → **Unsuccess**, blank → ignored.
+
+Matching rule (`tools/feedback_match.py`): hatchery + Section (unit) + Packing Tank + Packing Date (= selling date) finds the tank's invoices;
+the customer name then picks the invoice (same spelling key → ≥ 0.8 similar → the only candidate if ≥ 0.5 similar → packed quantity).
+The **Crop No.** is not used (feedback files may count crops continuously while the QC file restarts at 1 each year).
+In the Tanks table the customer name is underlined **green = Success**, **grey = Unsuccess**, no line = no feedback; a customer with both results on one tank counts as Unsuccess. The build prints how many records were matched.
+Validated on Vijaya: 1,996 feedback records → 1,991 matched (99.7 %), 1,948 invoices carry a result (1,288 Success, 660 Unsuccess).
